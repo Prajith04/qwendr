@@ -55,3 +55,4 @@ Create a `.env` file based on the `.env.example` template and add your API keys.
 ## Deployment
 
 This application is deployed on Hugging Face Spaces.
+https://huggingface.co/spaces/Prajith04/qwendr
