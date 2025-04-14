@@ -35,7 +35,7 @@ Click on any disease name to view detailed information about the disease generat
 - **Frontend**: HTML, CSS, JavaScript
 - **Backend**: FastAPI, SQLite
 - **Vector Search**: Sentence Transformers, Qdrant Cloud
-- **AI Integration**: Groq API (LLama3-70B model)
+- **AI Integration**: Groq API (qwen-2.5-32b)
 - **Data**: Diseases and symptoms dataset
 
 ## Setup
