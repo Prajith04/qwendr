@@ -94,7 +94,7 @@ async def disease_info(name: str):
                     "Content-Type": "application/json"
                 },
                 json={
-                    "model": "llama3-70b-8192",
+                    "model": "qwen-2.5-32b",
                     "messages": [
                         {
                             "role": "system",
