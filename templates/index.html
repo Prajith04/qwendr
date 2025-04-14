@@ -1,0 +1,500 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Medical Symptom Checker</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: linear-gradient(135deg, #fdfbfb, #ebedee);
+      margin: 0;
+      padding: 40px 20px;
+      color: #333;
+    }
+
+    h1 {
+      text-align: center;
+      font-size: 2.5rem;
+      margin-bottom: 30px;
+      background: linear-gradient(to right, #3b82f6, #9333ea);
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .search-container {
+      text-align: center;
+      margin-bottom: 30px;
+    }
+
+    input[type="text"] {
+      padding: 12px 20px;
+      width: 60%;
+      max-width: 500px;
+      border-radius: 30px;
+      border: 1px solid #ccc;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+      transition: all 0.3s ease;
+    }
+
+    input[type="text"]:focus {
+      outline: none;
+      border-color: #6366f1;
+      box-shadow: 0 4px 15px rgba(99,102,241,0.2);
+    }
+
+    button {
+      padding: 12px 25px;
+      margin-left: 10px;
+      border: none;
+      border-radius: 30px;
+      background: linear-gradient(to right, #3b82f6, #9333ea);
+      color: white;
+      cursor: pointer;
+      font-weight: bold;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+      transition: background 0.3s ease;
+    }
+
+    button:hover {
+      background: linear-gradient(to right, #2563eb, #7e22ce);
+    }
+
+    .selected-symptoms {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 10px;
+      margin-bottom: 30px;
+    }
+
+    .symptom-tag {
+      background: #e0e7ff;
+      color: #1e40af;
+      padding: 8px 15px;
+      border-radius: 20px;
+      display: flex;
+      align-items: center;
+      animation: fadeIn 0.3s ease;
+    }
+
+    .remove-symptom {
+      margin-left: 10px;
+      cursor: pointer;
+      color: #555;
+      font-weight: bold;
+    }
+
+    .container {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 20px;
+      justify-content: center;
+    }
+
+    .panel {
+      flex: 1 1 300px;
+      background: white;
+      border-radius: 15px;
+      padding: 20px;
+      box-shadow: 0 10px 20px rgba(0,0,0,0.05);
+      transition: transform 0.2s ease;
+      animation: fadeIn 0.5s ease;
+    }
+
+    .panel:hover {
+      transform: translateY(-5px);
+    }
+
+    .panel h2 {
+      margin-top: 0;
+      background: linear-gradient(to right, #2563eb, #9333ea);
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+      font-size: 1.5rem;
+    }
+
+    ul {
+      list-style: none;
+      padding: 0;
+    }
+
+    li {
+      padding: 10px 0;
+      border-bottom: 1px solid #eee;
+      transition: background 0.2s ease;
+    }
+
+    .clickable {
+      color: #6366f1;
+      cursor: pointer;
+    }
+
+    .clickable:hover {
+      text-decoration: underline;
+    }
+
+    #error-notification {
+      background-color: #fee2e2;
+      color: #b91c1c;
+      padding: 12px 20px;
+      border-radius: 8px;
+      margin: 0 auto 20px auto;
+      max-width: 600px;
+      text-align: center;
+      display: none;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @media screen and (max-width: 768px) {
+      input[type="text"] {
+        width: 80%;
+      }
+      .container {
+        flex-direction: column;
+        align-items: stretch;
+      }
+    }
+
+    /* Modal styles */
+    .modal {
+      display: none;
+      position: fixed;
+      z-index: 1;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      overflow: auto;
+      background-color: rgba(0,0,0,0.4);
+    }
+
+    .modal-content {
+      background-color: #fefefe;
+      margin: 15% auto;
+      padding: 20px;
+      border: 1px solid #888;
+      width: 70%;
+      border-radius: 8px;
+      max-height: 70vh;
+      overflow-y: auto;
+    }
+
+    .close {
+      color: #aaa;
+      float: right;
+      font-size: 28px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    .close:hover,
+    .close:focus {
+      color: black;
+      text-decoration: none;
+    }
+
+    .disease-info-title {
+      margin-top: 0;
+      color: #4285f4;
+    }
+
+    .loading {
+      text-align: center;
+      padding: 20px;
+    }
+
+    .disease-clickable {
+      cursor: pointer;
+      color: #333;
+      font-weight: bold;
+    }
+
+    .disease-clickable:hover {
+      color: #4285f4;
+    }
+  </style>
+</head>
+<body>
+  <h1>Medical Symptom Checker</h1>
+
+  <div class="search-container">
+    <input type="text" id="symptom-search" placeholder="Enter a symptom..."/>
+    <button id="search-button">Search</button>
+  </div>
+
+  <div id="error-notification"></div>
+
+  <div class="selected-symptoms" id="selected-symptoms">
+    <!-- Selected symptoms will appear here -->
+  </div>
+
+  <div class="container">
+    <div class="panel">
+      <h2>Matching Diseases</h2>
+      <ul id="diseases-list"></ul>
+    </div>
+    <div class="panel">
+      <h2>Similar Symptoms</h2>
+      <ul id="similar-list"></ul>
+    </div>
+    <div class="panel">
+      <h2>Related Symptoms</h2>
+      <ul id="related-list"></ul>
+    </div>
+  </div>
+
+  <!-- Disease Info Modal -->
+  <div id="diseaseModal" class="modal">
+    <div class="modal-content">
+      <span class="close">&times;</span>
+      <h3 id="disease-info-title" class="disease-info-title">Disease Information</h3>
+      <div id="disease-info-content">
+        <div id="loading" class="loading">Loading information...</div>
+        <div id="disease-details"></div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Store selected symptoms
+    let selectedSymptoms = [];
+    
+    // DOM elements
+    const searchInput = document.getElementById('symptom-search');
+    const searchButton = document.getElementById('search-button');
+    const selectedSymptomsDiv = document.getElementById('selected-symptoms');
+    const diseasesList = document.getElementById('diseases-list');
+    const similarList = document.getElementById('similar-list');
+    const relatedList = document.getElementById('related-list');
+    const errorElement = document.getElementById('error-notification');
+    const modal = document.getElementById('diseaseModal');
+    const closeModal = document.getElementsByClassName('close')[0];
+    const diseaseTitle = document.getElementById('disease-info-title');
+    const diseaseDetails = document.getElementById('disease-details');
+    const loadingElement = document.getElementById('loading');
+    
+    // Function to show error message
+    function showError(message) {
+      errorElement.textContent = message;
+      errorElement.style.display = 'block';
+      setTimeout(() => {
+        errorElement.style.display = 'none';
+      }, 5000);
+    }
+    
+    // New function to handle both initial search and updates after selections
+    async function performSearch(inputSymptom) {
+      // Clear any previous errors
+      errorElement.style.display = 'none';
+      
+      try {
+        // Create base URL with inputSymptom if provided, otherwise use first selected symptom
+        let symptomParam = inputSymptom;
+        if (!symptomParam && selectedSymptoms.length > 0) {
+          symptomParam = selectedSymptoms[0];
+        }
+        
+        if (!symptomParam) return; // Exit if no symptom to search
+        
+        let url = `${window.location.origin}/search?symptom=${encodeURIComponent(symptomParam)}`;
+        
+        // Add remaining selected symptoms to query
+        if (selectedSymptoms.length > 0) {
+          selectedSymptoms.forEach((s, index) => {
+            // Skip the first one if it's the same as symptomParam
+            if (index === 0 && s === symptomParam) return;
+            url += `&selected=${encodeURIComponent(s)}`;
+          });
+        }
+        
+        const response = await fetch(url);
+        
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        const data = await response.json();
+        
+        displayResults(data);
+        
+        // Clear search input only if this was initiated from the search box
+        if (inputSymptom) {
+          searchInput.value = '';
+        }
+      } catch (error) {
+        showError(`Error searching for symptom: ${error.message}. Please try again.`);
+        console.error('Error fetching data:', error);
+      }
+    }
+    
+    // Update search function to use the new performSearch function
+    async function searchSymptoms() {
+      const symptom = searchInput.value.trim();
+      if (!symptom) return;
+      performSearch(symptom);
+    }
+    
+    // Display results
+    function displayResults(data) {
+      // Update diseases list
+      diseasesList.innerHTML = '';
+      if (!data.matching_diseases || data.matching_diseases.length === 0) {
+        diseasesList.innerHTML = '<li>No matching diseases found</li>';
+      } else {
+        data.matching_diseases.forEach(disease => {
+          diseasesList.innerHTML += `<li class="disease-clickable" onclick="showDiseaseInfo('${escapeJS(disease)}')">${escapeHTML(disease)}</li>`;
+        });
+      }
+      
+      // Update similar symptoms
+      similarList.innerHTML = '';
+      if (data.semantic_matches && data.semantic_matches.length > 0) {
+        data.semantic_matches.forEach(symptom => {
+          if (!selectedSymptoms.includes(symptom)) {
+            similarList.innerHTML += `<li class="clickable" onclick="addSymptom('${escapeJS(symptom)}')">${escapeHTML(symptom)}</li>`;
+          }
+        });
+      } else {
+        similarList.innerHTML = '<li>No similar symptoms found</li>';
+      }
+      
+      // Update related symptoms - sort them alphabetically
+      relatedList.innerHTML = '';
+      if (!data.related_symptoms || data.related_symptoms.length === 0) {
+        relatedList.innerHTML = '<li>No related symptoms found</li>';
+      } else {
+        // Sort the related symptoms alphabetically
+        const sortedSymptoms = [...data.related_symptoms].sort((a, b) => a.localeCompare(b));
+        
+        sortedSymptoms.forEach(symptom => {
+          if (!selectedSymptoms.includes(symptom)) {
+            relatedList.innerHTML += `<li class="clickable" onclick="addSymptom('${escapeJS(symptom)}')">${escapeHTML(symptom)}</li>`;
+          }
+        });
+      }
+      
+      // Update selected symptoms
+      updateSelectedSymptoms();
+    }
+    
+    // Helper function to escape HTML
+    function escapeHTML(str) {
+      return str
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+    }
+    
+    // Helper function to escape strings for JavaScript
+    function escapeJS(str) {
+      return str
+        .replace(/\\/g, '\\\\')
+        .replace(/'/g, "\\'")
+        .replace(/"/g, '\\"')
+        .replace(/\n/g, '\\n')
+        .replace(/\r/g, '\\r')
+        .replace(/\t/g, '\\t');
+    }
+    
+    // Add a symptom to the selected list
+    function addSymptom(symptom) {
+      if (!selectedSymptoms.includes(symptom)) {
+        selectedSymptoms.push(symptom);
+        updateSelectedSymptoms();
+        
+        // Instead of calling searchSymptoms which expects input from search box,
+        // directly make a request with the current selected symptoms
+        performSearch(null);
+      }
+    }
+    
+    // Remove a symptom from the selected list
+    function removeSymptom(symptom) {
+      selectedSymptoms = selectedSymptoms.filter(s => s !== symptom);
+      updateSelectedSymptoms();
+      if (selectedSymptoms.length > 0) {
+        performSearch(null);
+      } else {
+        // Clear results if no symptoms are selected
+        diseasesList.innerHTML = '<li>Enter a symptom to get started</li>';
+        similarList.innerHTML = '';
+        relatedList.innerHTML = '';
+      }
+    }
+    
+    // Update the selected symptoms display
+    function updateSelectedSymptoms() {
+      selectedSymptomsDiv.innerHTML = '';
+      selectedSymptoms.forEach(symptom => {
+        const tag = document.createElement('div');
+        tag.className = 'symptom-tag';
+        tag.innerHTML = `
+          ${escapeHTML(symptom)}
+          <span class="remove-symptom" onclick="removeSymptom('${escapeJS(symptom)}')">×</span>
+        `;
+        selectedSymptomsDiv.appendChild(tag);
+      });
+    }
+    
+    // Function to show disease information using Groq API
+    async function showDiseaseInfo(disease) {
+      // Show modal
+      modal.style.display = "block";
+      diseaseTitle.textContent = disease;
+      diseaseDetails.innerHTML = '';
+      loadingElement.style.display = 'block';
+      
+      try {
+        // Call to backend API to get disease information
+        const response = await fetch(`${window.location.origin}/disease-info?name=${encodeURIComponent(disease)}`);
+        
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        const data = await response.json();
+        loadingElement.style.display = 'none';
+        
+        // Format and display the information
+        diseaseDetails.innerHTML = data.info;
+      } catch (error) {
+        loadingElement.style.display = 'none';
+        diseaseDetails.innerHTML = `<p class="error">Error getting information: ${error.message}</p>`;
+        console.error('Error fetching disease info:', error);
+      }
+    }
+    
+    // Close the modal when clicking the X
+    closeModal.onclick = function() {
+      modal.style.display = "none";
+    }
+    
+    // Close the modal when clicking outside of it
+    window.onclick = function(event) {
+      if (event.target == modal) {
+        modal.style.display = "none";
+      }
+    }
+    
+    // Event listeners
+    searchButton.addEventListener('click', searchSymptoms);
+    searchInput.addEventListener('keypress', function(e) {
+      if (e.key === 'Enter') {
+        searchSymptoms();
+      }
+    });
+    
+    // Initialize
+    diseasesList.innerHTML = '<li>Enter a symptom to get started</li>';
+  </script>
+</body>
+</html>
