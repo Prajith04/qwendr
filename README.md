@@ -2,6 +2,13 @@
 
 An interactive medical symptom checker that helps users explore symptoms and related diseases using vector similarity search and a database of medical conditions.
 
+It uses qdrant vector db to store symptoms and when you enter a symptom it will return the similar symptoms from the database.
+
+## Advantage og using vectorDB and similarity search
+
+If you enter a symptom which is not in the database for example the database has "vomiting" as symptom but you enter the symptom as "puking"
+In this scenario similarity search will return vomiting as similar symptoms because they are nearer in the vector space.
+
 ## Features
 
 - Enter symptoms to find related diseases
